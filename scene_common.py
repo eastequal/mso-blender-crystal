@@ -228,6 +228,8 @@ def build_camera(ctx):
         cam.keyframe_insert("location", frame=f); aim.keyframe_insert("location", frame=f)
         fo = ctx.get("focus_offset", (0, 0, 0))
         cd.dof.focus_distance = math.sqrt((dx + fo[0]) ** 2 + (dy + fo[1]) ** 2 + (dz + fo[2]) ** 2)
+        if "focus_fn" in C:   # 랙 포커스: 초점 거리를 프레임마다 앞뒤로 민다(음수 = 앞면 · 양수 = 뒤쪽·코어)
+            cd.dof.focus_distance = max(0.05, cd.dof.focus_distance + C["focus_fn"](f))
         cd.dof.keyframe_insert("focus_distance", frame=f)
     ctx["camera"] = cam; ctx["aim"] = aim
     return cam
@@ -241,10 +243,23 @@ def build_compositor(ctx):
     rl = n.new("CompositorNodeRLayers"); rl.scene = sc
     hs = n.new("CompositorNodeHueSat"); hs.inputs["Saturation"].default_value = 0.0
     l.new(rl.outputs["Image"], hs.inputs["Image"])
+    gl_spec = ctx["spec"].get("glare")
+    src = hs
+    if gl_spec:
+        gl = n.new("CompositorNodeGlare")
+        gl.inputs["Type"].default_value = gl_spec.get("type", "Streaks")
+        gl.inputs["Quality"].default_value = gl_spec.get("quality", "High")
+        for k, v in (("Threshold", "threshold"), ("Strength", "strength"), ("Size", "size"),
+                     ("Fade", "fade"), ("Smoothness", "smoothness"), ("Maximum", "maximum")):
+            if v in gl_spec: gl.inputs[k].default_value = float(gl_spec[v])
+        if "streaks" in gl_spec: gl.inputs["Streaks"].default_value = int(gl_spec["streaks"])
+        if "angle" in gl_spec: gl.inputs["Streaks Angle"].default_value = math.radians(float(gl_spec["angle"]))
+        if "iterations" in gl_spec: gl.inputs["Iterations"].default_value = int(gl_spec["iterations"])
+        l.new(hs.outputs["Image"], gl.inputs["Image"]); src = gl
     cv = n.new("CompositorNodeCurveRGB"); c = cv.mapping.curves[3]
     c.points[0].location = (0.0, 0.0); c.points[1].location = (1.0, 1.0)
     c.points.new(0.18, 0.10); c.points.new(0.50, 0.52); c.points.new(0.80, 0.86); cv.mapping.update()
-    l.new(hs.outputs["Image"], cv.inputs["Image"])
+    l.new(src.outputs["Image"], cv.inputs["Image"])
     em = n.new("CompositorNodeEllipseMask"); em.inputs["Size"].default_value = (1.55, 1.30); em.inputs["Position"].default_value = (0.5, 0.5)
     bl = n.new("CompositorNodeBlur"); bl.inputs["Size"].default_value = (420, 420)
     try: bl.inputs["Type"].default_value = "GAUSS"
