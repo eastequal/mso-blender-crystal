@@ -29,8 +29,8 @@ CUT_SEC = 2.0
 # 하단 스크림 — 0.36H 에서 0.62H 까지 smoothstep 으로 올려 자막이 밝은 바닥에 안 묻히게
 SCRIM = os.path.join(TMP, "scrim.png")
 y = np.arange(H)[:, None].astype(float)
-t = np.clip((y - H*0.36) / (H*0.26), 0, 1); t = t*t*(3-2*t)
-a = (t*236).astype(np.uint8)
+t = np.clip((y - H*0.50) / (H*0.20), 0, 1); t = t*t*(3-2*t)
+a = (t*205).astype(np.uint8)
 img = np.zeros((H, W, 4), np.uint8); img[..., 3] = np.repeat(a, W, axis=1)
 Image.fromarray(img, "RGBA").save(SCRIM)
 
@@ -48,7 +48,8 @@ for i, (stem, ch, ko, line) in enumerate(CUTS, 1):
     src = os.path.join(CUT, stem + ".mp4")
     if not os.path.exists(src): print(f"  [빠짐] {stem}"); continue
     dst = os.path.join(TMP, f"c{i:02d}.mp4")
-    fc = (f"[0:v]scale=-2:{H},crop={W}:{H},format=gray,format=yuv420p[v];[1:v]scale={W}:{H}[s];"
+    fc = (f"[0:v]minterpolate=fps={FPS}:mi_mode=mci:mc_mode=aobmc:me_mode=bidir:vsbmc=1,"
+          f"scale=-2:{H},crop={W}:{H},format=gray,format=yuv420p[v];[1:v]scale={W}:{H}[s];"
           f"[v][s]overlay=0:0[b];[b]{dt(ch,FB,168,FG,96,920)},{dt(ko,FB,66,FG,100,1112)},"
           f"{dt(line,FR,44,DIM,100,1196)},fps={FPS}[o]")
     run(["ffmpeg","-y","-v","error","-i",src,"-i",SCRIM,"-filter_complex",fc,"-map","[o]",
@@ -58,7 +59,7 @@ if not seg: raise SystemExit("컷이 없다")
 
 def card(name, dur, layers, bed, dark):
     dst = os.path.join(TMP, name + ".mp4")
-    fc = (f"[0:v]scale=-2:{H},crop={W}:{H},format=gray,format=yuv420p,"
+    fc = (f"[0:v]minterpolate=fps={FPS}:mi_mode=blend,scale=-2:{H},crop={W}:{H},format=gray,format=yuv420p,"
           f"eq=brightness={dark}:contrast=0.92[v];[1:v]scale={W}:{H}[s];[v][s]overlay=0:0[b];[b]"
           + ",".join(layers) + f",fps={FPS}[o]")
     run(["ffmpeg","-y","-v","error","-stream_loop","4","-i",bed,"-i",SCRIM,"-filter_complex",fc,
@@ -70,12 +71,12 @@ bedL = os.path.join(CUT, "08_W.mp4") if os.path.exists(os.path.join(CUT,"08_W.mp
 
 hook = card("hook", 3.0, [dt("같은 화장품을 써도",    FR, 54, DIM, 100, 556),
                           dt("결과가 다른 이유",      FB, 88, FG, 100, 636),
-                          dt("피부를 가르는 축 여덟", FR, 50, DIM, 100, 1120)], bed0, -0.44)
+                          dt("피부를 가르는 축 여덟", FR, 50, DIM, 100, 1120)], bed0, -0.30)
 msg  = card("msg", 2.5, [dt("내 피부 관리는",         FB, 84, FG, 100, 790),
-                         dt("내 피부를 아는 것부터.",  FB, 84, FG, 100, 906)], bedL, -0.52)
+                         dt("내 피부를 아는 것부터.",  FB, 84, FG, 100, 906)], bedL, -0.35)
 cta  = card("cta", 3.5, [dt("내 피부 유형 알아보기 ↑", FB, 76, FG, 100, 706),
                          dt("16문항 · 1분",            FR, 52, DIM, 100, 842),
-                         dt("페이스필터의원 수원점",   FR, 44, DIM, 100, 1178)], bed0, -0.55)
+                         dt("페이스필터의원 수원점",   FR, 44, DIM, 100, 1178)], bed0, -0.38)
 
 lst = os.path.join(TMP, "list.txt")
 with open(lst, "w", encoding="utf-8") as f:
