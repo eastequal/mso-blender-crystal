@@ -49,7 +49,9 @@ for i, (stem, ch, ko, line) in enumerate(CUTS, 1):
     if not os.path.exists(src): print(f"  [빠짐] {stem}"); continue
     dst = os.path.join(TMP, f"c{i:02d}.mp4")
     fc = (f"[0:v]minterpolate=fps={FPS}:mi_mode=mci:mc_mode=aobmc:me_mode=bidir:vsbmc=1,"
-          f"scale=-2:{H},crop={W}:{H},format=gray,format=yuv420p[v];[1:v]scale={W}:{H}[s];"
+          f"scale=-2:{int(H*1.10)},crop={int(W*1.10)}:{int(H*1.10)},"
+          f"zoompan=z='1+0.085*on/{int(CUT_SEC*FPS)-1}':d=1:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':s={W}x{H}:fps={FPS},"
+          f"format=gray,format=yuv420p[v];[1:v]scale={W}:{H}[s];"
           f"[v][s]overlay=0:0[b];[b]{dt(ch,FB,168,FG,96,920)},{dt(ko,FB,66,FG,100,1112)},"
           f"{dt(line,FR,44,DIM,100,1196)},fps={FPS}[o]")
     run(["ffmpeg","-y","-v","error","-i",src,"-i",SCRIM,"-filter_complex",fc,"-map","[o]",
