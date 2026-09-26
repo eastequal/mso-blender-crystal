@@ -17,7 +17,12 @@ from diffusers.utils import export_to_video, load_image
 OUT = sys.argv[1] if len(sys.argv) > 1 else "/content/out"
 os.makedirs(OUT, exist_ok=True)
 
-W, H, NF, FPS_OUT = 576, 1024, 25, 10      # 25프레임 ÷ 10fps = 2.5초 (컷 2초 + 여유)
+W, H, NF, FPS_OUT = 576, 1024, 25, 8
+# 🔴 9/26 공식문서 대조로 고친 셋 —
+#   ① fps 는 «마이크로 컨디셔닝»이다. 안 넘기면 기본 7로 학습된 움직임이 나오는데
+#      우리는 10fps 로 내보내 43퍼센트 빨리 재생했고 그만큼 떨렸다 → 조건값과 출력을 8로 맞춘다
+#   ② decode_chunk_size 를 2로 두면 문서가 「깜빡일 수 있다」고 경고한다 → 6
+#   ③ noise_aug_strength 는 0.02~0.1 이 원본을 지키는 구간 (0.05 유지)
 # 움직임 세기 — 9/25 실측 기준선: 실사 광고 motion 중앙 3~4.5, 우리 목표 2.5 이상
 SHOTS = [
     ("01_O", 170),   # 기름이 번진다 — 크게
@@ -45,7 +50,7 @@ for name, motion in SHOTS:
     img = load_image(f"frames/{name}.png").resize((W, H))
     try:
         v = pipe(img, height=H, width=W, num_frames=NF,
-                 decode_chunk_size=2, motion_bucket_id=motion,
+                 decode_chunk_size=6, fps=FPS_OUT, motion_bucket_id=motion,
                  noise_aug_strength=0.05,
                  generator=torch.manual_seed(7)).frames[0]
         export_to_video(v, dst, fps=FPS_OUT)

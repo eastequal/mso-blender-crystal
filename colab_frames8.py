@@ -14,8 +14,12 @@ OUT = sys.argv[1] if len(sys.argv) > 1 else "/content/frames8"
 os.makedirs(OUT, exist_ok=True)
 
 HEAD = "extreme macro photograph of "
-TAIL = (" on a smooth dark matte slab, fine surface micro-texture, black and white, low key, "
-        "single hard rim light from the left, shallow depth of field, photorealistic product commercial still")
+# 🔴 SVD 는 움직임을 «전경과 배경 사이의 변화»로 학습했다 — 배경이 없으면 기준이 없어 안 움직인다(9/26).
+#    그래서 판을 꽉 채우지 않고 «사건 + 물러나는 바닥 + 어두운 뒤공간» 세 층으로 짓는다.
+TAIL = (" on a dark matte slab, the slab edge visible in the lower third and the surface receding into "
+        "a deep dark empty background, clear separation between the sharp foreground event and the "
+        "blurred space behind it, shallow depth of field, black and white with one bright specular "
+        "highlight and deep blacks, single hard rim light from the left, photorealistic macro still")
 NEG  = ("color, text, letters, watermark, logo, face, person, people, hands, skin, body, portrait, "
         "blurry, cartoon, illustration, painting, low quality, deformed, extra objects")
 
