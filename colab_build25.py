@@ -90,7 +90,13 @@ def card(name, dur, layers, bed, dark):
          "-map","[o]","-t",str(dur),"-an","-c:v","libx264","-pix_fmt","yuv420p","-crf","18",dst])
     return dst
 
-bed0 = os.path.join(CUT, "02_D.mp4") if os.path.exists(os.path.join(CUT,"02_D.mp4")) else os.path.join(CUT,"01_O.mp4")
+def _bed(*names):
+    for n in names:
+        q = os.path.join(CUT, n + ".mp4")
+        if os.path.exists(q): return q
+    raise SystemExit("바닥으로 쓸 컷이 없다")
+bedH = _bed("05_P", "04_S", "01_O")     # 후킹 — 가장 역동적인 것
+bed0 = _bed("02_D", "01_O")
 bedL = os.path.join(CUT, "08_W.mp4") if os.path.exists(os.path.join(CUT,"08_W.mp4")) else bed0
 
 hook = card("hook", 3.0, [dt("같은 화장품을 써도",    FR, 54, DIM, 100, 556),
@@ -98,15 +104,21 @@ hook = card("hook", 3.0, [dt("같은 화장품을 써도",    FR, 54, DIM, 100, 
                           dt("피부를 가르는 축 여덟", FR, 50, DIM, 100, 1120)], bed0, -0.30)
 msg  = card("msg", 2.5, [dt("내 피부 관리는",         FB, 84, FG, 100, 790),
                          dt("내 피부를 아는 것부터.",  FB, 84, FG, 100, 906)], bedL, -0.35)
-cta  = card("cta", 3.5, [dt("내 피부 유형 알아보기 ↑", FB, 76, FG, 100, 706),
+cta  = card("cta", 3.0, [dt("내 피부 유형 알아보기 ↑", FB, 76, FG, 100, 706),
                          dt("16문항 · 1분",            FR, 52, DIM, 100, 842),
                          dt("페이스필터의원 수원점",   FR, 44, DIM, 100, 1178)], bed0, -0.38)
 
 lst = os.path.join(TMP, "list.txt")
 with open(lst, "w", encoding="utf-8") as f:
     for p in [hook] + seg + [msg, cta]: f.write(f"file '{p}'\n")
+# 🔴 기획서 규격 — 마지막 0.5초는 정지 (CTA 를 읽을 시간을 준다)
+FREEZE = 0.5
+_cat = os.path.join(TMP, "_cat.mp4")
 run(["ffmpeg","-y","-v","error","-f","concat","-safe","0","-i",lst,
-     "-c:v","libx264","-pix_fmt","yuv420p","-crf","18","-r",str(FPS),"-an",OUT])
+     "-c:v","libx264","-pix_fmt","yuv420p","-crf","18","-r",str(FPS),"-an",_cat])
+run(["ffmpeg","-y","-v","error","-i",_cat,
+     "-vf", f"tpad=stop_mode=clone:stop_duration={FREEZE}",
+     "-an","-c:v","libx264","-pix_fmt","yuv420p","-crf","18","-r",str(FPS),OUT])
 
 d = subprocess.run(["ffprobe","-v","error","-show_entries","format=duration","-of","default=nw=1:nk=1",OUT],
                    capture_output=True).stdout.decode().strip()
