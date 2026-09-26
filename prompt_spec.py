@@ -4,7 +4,12 @@
 🔴 사람 금지가 최우선 제약 — Pollinations 가 「soft·leather·skin」에서 사람을 뱉은 실측(9/26)."""
 
 # ── 고정 스캐폴드 : 여덟 컷이 «같은 광·같은 렌즈»여야 이어 붙였을 때 한 편으로 보인다 ──
-SHOT  = ("Extreme macro shot, 100mm macro lens, shallow depth of field")
+SHOT_TIGHT = "Extreme macro shot, 100mm macro lens, very shallow depth of field"
+SHOT_WIDE  = "Wider macro shot, 50mm lens, the whole surface in frame, shallow depth of field"
+FRAMING = {"01_O":SHOT_TIGHT, "02_D":SHOT_TIGHT,   # 짝1 — 번진다 / 마른다
+           "03_R":SHOT_WIDE,  "04_S":SHOT_WIDE,    # 짝2 — 튕긴다 / 파문
+           "05_P":SHOT_TIGHT, "06_N":SHOT_TIGHT,   # 짝3 — 남는다 / 안 남는다
+           "07_T":SHOT_WIDE,  "08_W":SHOT_WIDE}    # 짝4 — 돌아온다 / 안 돌아온다
 LIGHT = ("one hard rim light from camera left rakes across the surface, deep black falloff on the right, "
          "a single bright specular highlight")
 LOOK  = ("black and white, bleach-bypass grade, fine 35mm grain, clinical skincare commercial for a "
@@ -43,7 +48,11 @@ NEGATIVE = ("people, person, human, face, hands, fingers, skin, body, portrait, 
 
 def build(key):
     ev, cam = EVENTS[key]
-    return f"{SHOT}. {ev}, {cam}. {LIGHT}. {LOOK}. {PACE}."
+    return f"{FRAMING[key]}. {ev}, {cam}. {LIGHT}. {LOOK}. {PACE}."
+
+# 조립기가 프롬프트의 «카메라 의도»와 어긋나지 않게 — fixed 인 컷에 푸시인을 걸면 서로 싸운다
+CAMERA = {k: ("push" if "pushes in" in v[1] else "drift_r" if "to the right" in v[1]
+              else "drift_l" if "to the left" in v[1] else "fixed") for k, v in EVENTS.items()}
 
 if __name__ == "__main__":
     print(f"{'컷':<8}{'단어':>5}  판정")
