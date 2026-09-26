@@ -39,12 +39,15 @@ EVENTS = {
 }
 
 # ── 네거티브 : Wan 기본에서 «overall gray» 를 «뺀다» (흑백 광고라 정반대로 작동한다) ──
-NEGATIVE = ("people, person, human, face, hands, fingers, skin, body, portrait, "
-            "bright colors, oversaturated, overexposed, text, letters, subtitles, watermark, logo, "
-            "static, still picture, frozen, "
-            "blurred details, worst quality, low quality, JPEG compression residue, "
-            "deformed, disfigured, melting, warping, flicker, morphing, duplicated objects, "
-            "cluttered background, new objects entering frame, scene change, cut")
+# 우선순위대로 추리고 중복을 걷어냈다 — ①사람(절대조건) ②글자·로고 ③정지 ④품질·왜곡 ⑤장면전환
+# 🔴 「77토큰 한계」는 CLIP 을 쓰는 SD 계열 이야기이고 Wan 에는 «해당 없다»(umT5·5,000자).
+#    본문이 120토큰쯤 되는 것은 Wan 최적 구간(80~120단어)에 맞춘 것이지 초과가 아니다.
+NEGATIVE = ("person, people, face, hands, fingers, skin, body, "
+            "text, watermark, logo, subtitles, "
+            "static, frozen, still picture, "
+            "bright colors, oversaturated, overexposed, low quality, jpeg artifacts, "
+            "deformed, melting, warping, flicker, morphing, "
+            "new objects entering frame, scene change, cut")
 
 def build(key):
     ev, cam = EVENTS[key]
