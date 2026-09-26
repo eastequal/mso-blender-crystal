@@ -4,13 +4,14 @@
 🔴 사람 금지가 최우선 제약 — Pollinations 가 「soft·leather·skin」에서 사람을 뱉은 실측(9/26)."""
 
 # ── 고정 스캐폴드 : 여덟 컷이 «같은 광·같은 렌즈»여야 이어 붙였을 때 한 편으로 보인다 ──
-SHOT  = ("Locked-off extreme macro shot on a 100mm macro lens, shallow depth of field, "
-         "the surface filling the lower two thirds and darkness above")
+SHOT  = ("Extreme macro shot, 100mm macro lens, shallow depth of field")
 LIGHT = ("one hard rim light from camera left rakes across the surface, deep black falloff on the right, "
          "a single bright specular highlight")
 LOOK  = ("black and white, bleach-bypass grade, fine 35mm grain, clinical skincare commercial for a "
          "dermatology clinic, laboratory-clean, premium product film")
-PACE  = "slow motion, one continuous shot, nothing enters or leaves frame"
+PACE  = ("smooth slow motion with a steady even pace, one continuous shot, "
+         "the surrounding surface and background remain static, "
+         "nothing enters or leaves the frame, no cuts")
 
 # ── 컷마다 «사건 하나 + 카메라 하나» (Wan 공식) ──
 EVENTS = {

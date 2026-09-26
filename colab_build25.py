@@ -54,7 +54,8 @@ for i, (stem, ch, ko, line) in enumerate(CUTS, 1):
           f"format=gray,format=yuv420p[v];[1:v]scale={W}:{H}[s];"
           f"[v][s]overlay=0:0[b];[b]{dt(ch,FB,168,FG,96,920)},{dt(ko,FB,66,FG,100,1112)},"
           f"{dt(line,FR,44,DIM,100,1196)},fps={FPS}[o]")
-    run(["ffmpeg","-y","-v","error","-i",src,"-i",SCRIM,"-filter_complex",fc,"-map","[o]",
+    # 🔴 i2v 산출물은 첫 1~2프레임에 노이즈가 남는다 — 0.2초를 버리고 시작한다
+    run(["ffmpeg","-y","-v","error","-ss","0.2","-i",src,"-i",SCRIM,"-filter_complex",fc,"-map","[o]",
          "-t",str(CUT_SEC),"-an","-c:v","libx264","-pix_fmt","yuv420p","-crf","18",dst])
     seg.append(dst); got.append(f"{ch} {ko}"); print(f"  컷 {ch} {ko}", flush=True)
 if not seg: raise SystemExit("컷이 없다")
