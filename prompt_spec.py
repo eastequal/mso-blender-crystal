@@ -1,0 +1,54 @@
+# -*- coding: utf-8 -*-
+"""피부유형 8컷 — 영상 모델(Wan 2.2 i2v) 프롬프트 확정본 v1.
+근거: 7슬롯 구조 · Wan 최적 80~120단어 · i2v 는 「움직임+카메라」 · 한 클립 한 사건.
+🔴 사람 금지가 최우선 제약 — Pollinations 가 「soft·leather·skin」에서 사람을 뱉은 실측(9/26)."""
+
+# ── 고정 스캐폴드 : 여덟 컷이 «같은 광·같은 렌즈»여야 이어 붙였을 때 한 편으로 보인다 ──
+SHOT  = ("Locked-off extreme macro shot on a 100mm macro lens, shallow depth of field, "
+         "the surface filling the lower two thirds and darkness above")
+LIGHT = ("one hard rim light from camera left rakes across the surface, deep black falloff on the right, "
+         "a single bright specular highlight")
+LOOK  = ("black and white, bleach-bypass grade, fine 35mm grain, clinical skincare commercial for a "
+         "dermatology clinic, laboratory-clean, premium product film")
+PACE  = "slow motion, one continuous shot, nothing enters or leaves frame"
+
+# ── 컷마다 «사건 하나 + 카메라 하나» (Wan 공식) ──
+EVENTS = {
+ "01_O": ("a glossy oil film creeps outward across the matte surface, its wet edge advancing steadily "
+          "and the specular highlight sliding along with it", "the camera pushes in very slowly"),
+ "02_D": ("the last thin wet patch contracts and evaporates, the surface turning chalky as fine "
+          "hairline cracks spread outward", "the camera pushes in very slowly"),
+ "03_R": ("dozens of beaded droplets tremble and hold their round shape without spreading, one of them "
+          "rolling a short way and stopping", "the camera drifts slowly to the right"),
+ "04_S": ("concentric ripple rings race outward from the centre to the edge of the frame, one after "
+          "another, then slowly settle flat", "fixed camera"),
+ "05_P": ("a dark stain blooms outward into the surface, its feathered edge creeping and then holding, "
+          "the mark staying where it is", "the camera pushes in very slowly"),
+ "06_N": ("a wide soft band of light glides evenly across the flawless surface from left to right, "
+          "leaving the surface completely unchanged", "fixed camera"),
+ "07_T": ("a round dimple in the surface lifts and smooths itself back to flat, the surface springing "
+          "taut again with one small settling wobble", "fixed camera"),
+ "08_W": ("the fine parallel fold lines deepen and hold, the crease refusing to smooth out while the "
+          "raking light travels slowly along it", "the camera drifts slowly to the left"),
+}
+
+# ── 네거티브 : Wan 기본에서 «overall gray» 를 «뺀다» (흑백 광고라 정반대로 작동한다) ──
+NEGATIVE = ("people, person, human, face, hands, fingers, skin, body, portrait, "
+            "bright colors, oversaturated, overexposed, text, letters, subtitles, watermark, logo, "
+            "static, still picture, frozen, "
+            "blurred details, worst quality, low quality, JPEG compression residue, "
+            "deformed, disfigured, melting, warping, flicker, morphing, duplicated objects, "
+            "cluttered background, new objects entering frame, scene change, cut")
+
+def build(key):
+    ev, cam = EVENTS[key]
+    return f"{SHOT}. {ev}, {cam}. {LIGHT}. {LOOK}. {PACE}."
+
+if __name__ == "__main__":
+    print(f"{'컷':<8}{'단어':>5}  판정")
+    for k in EVENTS:
+        p = build(k); n = len(p.split())
+        ok = "OK" if 80 <= n <= 120 else ("길다" if n > 120 else "짧다")
+        print(f"{k:<8}{n:>5}  {ok}")
+    print(f"\n네거티브 {len(NEGATIVE.split())} 단어")
+    print("\n── 예시 (01_O) ──\n" + build("01_O"))
