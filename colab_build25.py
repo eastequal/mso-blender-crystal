@@ -34,6 +34,27 @@ a = (t*205).astype(np.uint8)
 img = np.zeros((H, W, 4), np.uint8); img[..., 3] = np.repeat(a, W, axis=1)
 Image.fromarray(img, "RGBA").save(SCRIM)
 
+# ── 컷마다 카메라 «의도»대로 움직인다 (프롬프트가 fixed 라는데 푸시인을 걸면 서로 싸운다) ──
+try:
+    import prompt_spec as _PS
+    _CAM = _PS.CAMERA
+except Exception:
+    _CAM = {}
+
+def _move(stem):
+    n = int(CUT_SEC * FPS) - 1
+    k = _CAM.get(stem, "push")
+    if k == "push":
+        z, x = f"1+0.085*on/{n}", "iw/2-(iw/zoom/2)"
+    elif k == "drift_r":
+        z, x = "1.05", f"(iw-iw/zoom)*(on/{n})"
+    elif k == "drift_l":
+        z, x = "1.05", f"(iw-iw/zoom)*(1-on/{n})"
+    else:                                    # fixed — 미세한 호흡만 (완전 정지는 죽어 보인다)
+        z, x = f"1+0.012*on/{n}", "iw/2-(iw/zoom/2)"
+    return (f"zoompan=z='{z}':d=1:x='{x}':y='ih/2-(ih/zoom/2)'"
+            f":s={W}x{H}:fps={FPS}")
+
 def run(args):
     r = subprocess.run(args, capture_output=True)
     if r.returncode:
@@ -50,7 +71,7 @@ for i, (stem, ch, ko, line) in enumerate(CUTS, 1):
     dst = os.path.join(TMP, f"c{i:02d}.mp4")
     fc = (f"[0:v]minterpolate=fps={FPS}:mi_mode=mci:mc_mode=aobmc:me_mode=bidir:vsbmc=1,"
           f"scale=-2:{int(H*1.10)},crop={int(W*1.10)}:{int(H*1.10)},"
-          f"zoompan=z='1+0.085*on/{int(CUT_SEC*FPS)-1}':d=1:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':s={W}x{H}:fps={FPS},"
+          f"{_move(stem)},"
           f"format=gray,format=yuv420p[v];[1:v]scale={W}:{H}[s];"
           f"[v][s]overlay=0:0[b];[b]{dt(ch,FB,168,FG,96,920)},{dt(ko,FB,66,FG,100,1112)},"
           f"{dt(line,FR,44,DIM,100,1196)},fps={FPS}[o]")
